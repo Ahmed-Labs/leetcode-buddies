@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+
+  redis:
+    image: redis
+    container_name: verification-redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
+
+  redis-commander:
+    container_name: verification-redis-commander
+    image: rediscommander/redis-commander
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
