@@ -56,17 +56,3 @@ export const monitorUserBio = async (username: string, uuid: string) => {
   }
   return false;
 };
-
-// (async () => {
-//   const username = "Mayo_leet";
-//   const uuid = "912aab1c-4547-11ee-be56-0242ac120002";
-//   console.log("Entered");
-//   const userFound = await userExist(username);
-
-//   if (userFound) {
-//     const foundUUID = await monitorUserBio(username, uuid);
-//     console.log(foundUUID);
-//   } else {
-//     console.log("User doesn't exist");
-//   }
-// })();
