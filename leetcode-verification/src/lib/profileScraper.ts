@@ -18,7 +18,7 @@ export const getPublicProfile = async (username: string) => {
       const formattedErrors = data.errors
         .map((error) => error.message)
         .join(", ");
-      throw new Error(`!!!!User Not Found: ${formattedErrors}`);
+      throw new Error(`User Not Found: ${formattedErrors}`);
     }
     return data.data.matchedUser;
   } catch (err) {
@@ -33,24 +33,39 @@ export const userExist = async (username: string) => {
     return false;
   }
 };
-export const monitorUserBio = async (username: string, uuid: string) => {
-  const delay = 5000;
-  const maxFetches = 18;
+export const monitorUserBio = async (
+  username: string,
+  uuid: string,
+  timeoutDate: Date
+) => {
+  const delay = 3000;
+  const maxFetches = 25;
   const maxError = 5;
   let fetchError = 0;
   let fetches = 0;
+  console.log("Timeout Date", timeoutDate);
+
   while (fetches <= maxFetches && fetchError < maxError) {
+    if (new Date() >= timeoutDate) {
+      console.log("Verification timeout. Stopping...");
+      break;
+    }
     console.log("Waiting for user uuid in bio...");
     try {
       const userProfile = await getPublicProfile(username);
       const userBio = userProfile.profile.aboutMe;
       if (userBio.includes(uuid)) {
-        console.log("Found uuid!");
+        console.log(`[${username}]: Verification Successful!`);
         return true;
       }
       fetches++;
     } catch (err) {
+      console.log("Fetch error: ", err);
       fetchError++;
+    }
+    if (new Date() >= timeoutDate) {
+      console.log("Verification timeout. Stopping...");
+      break;
     }
     await new Promise((resolve) => setTimeout(resolve, delay));
   }
