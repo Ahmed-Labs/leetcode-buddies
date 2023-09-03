@@ -10,6 +10,7 @@ import { userExist } from "./lib/profileScraper.js";
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
+const clients = new Map()
 
 app.post("/verify-account", async (req, res) => {
   const userData = req.body;
@@ -34,6 +35,33 @@ app.post("/clear", async (req, res) => {
   await verificationQueue.empty();
   return res.status(200).json({ message: "Queue cleared" });
 });
+
+// SSE
+app.get("/stream-verification", async (req, res) => {
+  const clientId = req.query.clientId;
+  console.log("Client Connected: ", clientId);
+  
+  const headers = {
+    "Content-Type": "text/event-stream",
+    Connection: "keep-alive",
+    "Cache-Control": "no-cache",
+  };
+  res.writeHead(200, headers);
+  clients.set(clientId, res);
+
+  req.on("close", () => {
+    console.log(`${clientId} Connection closed`);
+    clients.delete(clientId);
+    res.end();
+  });
+});
+
+export function sendToClient(clientId, data) {
+  const clientResponse = clients.get(clientId);
+  if (clientResponse) {
+    clientResponse.write(`event: update\ndata: ${JSON.stringify(data)}\n\n`);
+  }
+}
 
 app.listen(5000, () => {
   console.log("App running on port 5000");
